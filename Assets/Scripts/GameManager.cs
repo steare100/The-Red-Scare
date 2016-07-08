@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour {
 
 	public GameObject citizen;
 	public GameObject crime;
+	public GameObject buildingScript;
 
 	public static int population = 10;
 
@@ -21,9 +22,13 @@ public class GameManager : MonoBehaviour {
 
 	int communistLimit;
 
-	void Start() {
-		Debug.Log (Random.value);
+
+
+	//I think this has to be Awake instead of Start, since it's instatiated objects that other scripts use in their start method, and I want to make sure there;s no order of exection problems there
+	void Awake() {
+
 		setBuildings ();
+
 
 		for (int i = 0; i < population; i++) {
 			//We'll need to instantiate these guys better, as in not all in the same exact place
@@ -35,6 +40,7 @@ public class GameManager : MonoBehaviour {
 		
 
 		FindCommunists ();
+		addPeopleToBuildings ();
 		Debug.Log (communists.Count);
 	}
 
@@ -95,19 +101,40 @@ public class GameManager : MonoBehaviour {
 
 	void setBuildings(){
 		buildings = GameObject.FindGameObjectsWithTag ("Building");
+
 	}
 
 	void handleCrimes(){
 		cooldownRemaining -= Time.deltaTime;
 		if (cooldownRemaining <= 0) {
 			GameObject newCrime = (GameObject) Instantiate (crime, Vector3.zero, Quaternion.identity);
-			CrimeDataClass crimeData = newCrime.GetComponent<CrimeDataClass>();
+			CrimeSceneScript crimeData = newCrime.GetComponent<CrimeSceneScript>();
 			crimeData.setData ("communist", communists, communistPower, buildings);
 			cooldownRemaining = crimeCooldown;
 
 
 
 		}
+	}
+
+	void addPeopleToBuildings(){
+
+		//we'll need to change this later to only add people to houses
+
+		int counter = 0;
+		for (int i = 0; i < citizens.Length; i++) {
+			if (counter > buildings.Length)
+				counter = 0;
+			
+			AIScript citScript = citizens[i].GetComponent<AIScript> ();
+			BuildingScript buildScript = buildings[counter].GetComponent<BuildingScript> ();
+
+
+			citScript.addHomeBuilding (buildings [counter]);
+			buildScript.addCitizen (citizens [i]);
+			counter++;
+		}
+
 	}
 
 }
