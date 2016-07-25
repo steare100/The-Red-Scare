@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
+
 public class AIScript : MonoBehaviour {
 
 	Animator anim;
@@ -57,6 +58,11 @@ public class AIScript : MonoBehaviour {
 	float buildingInsideCooldown;
 
 	float cooldownRemaining = 0f;
+
+	private bool guiActive = false;
+
+	private Ray ray;
+	private RaycastHit hit;
 
 
 	void Start() {
@@ -167,6 +173,30 @@ public class AIScript : MonoBehaviour {
 			} else {
 				agent.Resume ();
 			}
+		}
+	}
+
+	void OnGUI(){
+
+		if (Input.GetMouseButtonDown (1) == true) {
+			ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			Physics.Raycast (ray, out hit);
+			if (hit.collider == gameObject) {
+				guiActive = true;
+
+			}
+		}
+		if (guiActive = true){
+			GUIStyle whiteBackground = new GUIStyle();
+
+			Texture2D texmex = MakeTex (100, 100, Color.white);
+			whiteBackground.normal.background = texmex;
+
+			Vector3 boxLocation = Camera.main.WorldToScreenPoint(gameObject.transform.position);
+			GUILayout.BeginArea (new Rect(boxLocation.x, boxLocation.y, 100, 100),"Test",whiteBackground );
+
+			GUILayout.EndArea();
+
 		}
 	}
 
@@ -319,4 +349,18 @@ public class AIScript : MonoBehaviour {
 		enterBuilding ();
 
 	}
+	private Texture2D MakeTex(int width, int height, Color col)
+	{
+		Color[] pix = new Color[width*height];
+
+		for(int i = 0; i < pix.Length; i++)
+			pix[i] = col;
+
+		Texture2D result = new Texture2D(width, height);
+		result.SetPixels(pix);
+		result.Apply();
+
+		return result;
+	}
+
 }
