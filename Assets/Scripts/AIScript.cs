@@ -59,7 +59,7 @@ public class AIScript : MonoBehaviour {
 
 	float cooldownRemaining = 0f;
 
-	private bool guiActive = false;
+	private bool guiActive;
 
 	private Ray ray;
 	private RaycastHit hit;
@@ -67,7 +67,7 @@ public class AIScript : MonoBehaviour {
 
 	void Start() {
 
-
+		guiActive = false;
 
 		civRenderer = gameObject.transform.GetChild (0).GetComponent<SkinnedMeshRenderer>();
 		civCollider = gameObject.GetComponent<CapsuleCollider> ();
@@ -178,24 +178,63 @@ public class AIScript : MonoBehaviour {
 
 	void OnGUI(){
 
-		if (Input.GetMouseButtonDown (1) == true) {
-			ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-			Physics.Raycast (ray, out hit);
-			if (hit.collider == gameObject) {
-				guiActive = true;
+		//Have you heard of this flexible space thing? This is what I'm using to make the gui for the npc's for now
+		//It's easy to set up, but isn't as flexible as normal gui
+		//Basically you just define an area size, and put buttons and stuff into it
+		//The rest it does for you
 
+		if (guiActive == false) {
+			if (Input.GetMouseButtonDown (1) == true) {
+				ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+				Physics.Raycast (ray, out hit);
+				if (hit.collider.gameObject == gameObject) {
+					
+					guiActive = true;
+
+				}
 			}
 		}
-		if (guiActive = true){
+		if (guiActive == true){
+			
 			GUIStyle whiteBackground = new GUIStyle();
 
 			Texture2D texmex = MakeTex (100, 100, Color.white);
 			whiteBackground.normal.background = texmex;
 
-			Vector3 boxLocation = Camera.main.WorldToScreenPoint(gameObject.transform.position);
-			GUILayout.BeginArea (new Rect(boxLocation.x, boxLocation.y, 100, 100),"Test",whiteBackground );
+			Vector3 pos = gameObject.transform.position;
 
+			Vector3 boxLocation = Camera.main.WorldToScreenPoint(gameObject.transform.position);
+			//this inverts the y of the ui box, which is necesary to make it track the npc
+			float boxY = (Screen.height - boxLocation.y) -  50;
+			float boxX = boxLocation.x + 10;
+
+			GUILayout.BeginArea (new Rect(boxX, boxY, 100, 100),"Test",whiteBackground );
+
+			GUILayout.BeginVertical ();
+
+			GUILayout.FlexibleSpace ();
+
+			GUILayout.BeginHorizontal ();
+
+			if(GUILayout.Button("Interrogate",GUILayout.Width(40))){
+				
+			}
+
+			if(GUILayout.Button("Arrest",GUILayout.Width(40))){
+				turnInvisible ();
+			}
+				
+			GUILayout.EndHorizontal ();
+
+
+			if(GUILayout.Button("Close")){
+				guiActive = false;
+			}
+
+			GUILayout.EndVertical ();
 			GUILayout.EndArea();
+			//RectTransform g = new RectTransform ();
+
 
 		}
 	}
@@ -327,6 +366,8 @@ public class AIScript : MonoBehaviour {
 		turnInvisible ();
 
 		agent.speed = 0f;
+
+		guiActive = false;
 
 			
 	}
