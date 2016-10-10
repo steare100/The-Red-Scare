@@ -57,6 +57,8 @@ public class AIScript : MonoBehaviour {
 
 	float buildingInsideCooldown;
 
+	GameObject buildingInside;
+
 	float cooldownRemaining = 0f;
 
 	private bool guiActive;
@@ -156,6 +158,7 @@ public class AIScript : MonoBehaviour {
 			if (agent.remainingDistance <= 1f || agent.destination == null) {
 				if (WayPoints [wayPointChoice].tag == "Building") {
 					enterBuilding ();
+					buildingInside = WayPoints [wayPointChoice];
 					wayPointChoice = Random.Range (0, WayPoints.Count);
 					agent.SetDestination (WayPoints [wayPointChoice].transform.position);
 					if (inBuilding == false) {
@@ -198,12 +201,12 @@ public class AIScript : MonoBehaviour {
 			
 			GUIStyle whiteBackground = new GUIStyle();
 
-			Texture2D texmex = MakeTex (100, 100, Color.white);
-			whiteBackground.normal.background = texmex;
+			Texture2D tex = MakeTex (100, 100, Color.white);
+			whiteBackground.normal.background = tex;
 
 			Vector3 pos = gameObject.transform.position;
 
-			Vector3 boxLocation = Camera.main.WorldToScreenPoint(gameObject.transform.position);
+			Vector3 boxLocation = Camera.main.WorldToScreenPoint(pos);
 			//this inverts the y of the ui box, which is necesary to make it track the npc
 			float boxY = (Screen.height - boxLocation.y) -  50;
 			float boxX = boxLocation.x + 10;
@@ -369,6 +372,11 @@ public class AIScript : MonoBehaviour {
 
 		guiActive = false;
 
+		if (buildingInside.GetComponent<BuildingScript> ()) {
+			BuildingScript script = buildingInside.GetComponent<BuildingScript> ();
+			script.addPersonInside (gameObject);
+		}
+
 			
 	}
 
@@ -378,6 +386,10 @@ public class AIScript : MonoBehaviour {
 		turnVisible ();
 
 		agent.speed = walkSpeed;
+		if (buildingInside.GetComponent<BuildingScript> ()) {
+			BuildingScript script = buildingInside.GetComponent<BuildingScript> ();
+			script.removePersonInside (gameObject);
+		}
 	}
 		
 

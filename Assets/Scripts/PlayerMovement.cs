@@ -27,6 +27,7 @@ public class PlayerMovement : MonoBehaviour {
 		transform.Rotate (0, horizontal*rotationalSpeed*Time.deltaTime, 0);
 
 		anim.SetFloat ("speed", vertical);
+
 	}
 
 }

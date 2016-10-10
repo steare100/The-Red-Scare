@@ -4,6 +4,12 @@ using System.Collections;
 public class CitizenGuiScript : MonoBehaviour {
 
 
+	/*
+	 * Not using this class at the moment
+	 * I've put all the GUI stuff in the AIScript class itself
+	 * using OnGUI
+	 */
+
 	private bool guiActive = false;
 
 	private Ray ray;

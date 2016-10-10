@@ -3,14 +3,14 @@ using System.Collections;
 
 public class TextRotationScript : MonoBehaviour {
 
-	Camera camera = Camera.main;
+	Camera cameraM = Camera.main;
 
 	void Start() {
-		camera = Camera.main;
+		cameraM = Camera.main;
 	}
 
 	void Update () {
 		
-		transform.LookAt (camera.gameObject.transform.position);
+		transform.LookAt (cameraM.gameObject.transform.position);
 	}
 }
