@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -6,38 +8,54 @@ using System.Collections.Generic;
 public class GameManager : MonoBehaviour {
 
 	public GameObject citizen;
-	public GameObject crime;
-	public GameObject buildingScript;
 
-	public static int population = 10;
+	public float detectiveSkill;
+	GameObject[] spawnPoints;
+	public DossierDataClass dossier;
+	public bool dossierActive;
+	public static int population = 100;
+	public Text dossierText;
+	public GameObject arsonPrefab;
+	public GameObject robberyPrefab;
 
 	GameObject[] citizens = new GameObject[population];
 	List<GameObject> communists = new List<GameObject> (); 
 	GameObject[] buildings;
-
+	GameObject[] possibleCrimes = new GameObject[2];
 	float crimeCooldown = 120f;
-	float cooldownRemaining = 0;
+	float cooldownRemaining = 0f;
+	public Text score;
+	public Vector2 scrollPosition;
+	public Canvas dossierCanvas;
 
-	public int communistPower = 20;
+	public static int communistPower = 40;
+	int defaultCommunistPower = 20;
+
+	public static GameObject currentPerpetrator;
+	public static CrimeDataClass currentCrime;
 
 	int communistLimit;
 
 
+	// TODO: put smarter code for determining how many communists there are at game start
+	//For example, there can never be more than 10 or less than 2
+	void Start() {
+		dossierCanvas.enabled = false;
+		dossierActive = false;
+		dossier = ScriptableObject.CreateInstance<DossierDataClass> ();
+		score.text = communistPower.ToString ();
+		spawnPoints = GameObject.FindGameObjectsWithTag ("WayPoint");
+		SetBuildings ();
 
-	//I think this has to be Awake instead of Start, since it's instatiated objects that other scripts use in their start method, and I want to make sure there;s no order of exection problems there
-	void Awake() {
-
-		setBuildings ();
-
+		Debug.Log ("Spawning Citizens");
 
 		for (int i = 0; i < population; i++) {
-			//We'll need to instantiate these guys better, as in not all in the same exact place
-			//Alternitively, we could instantiate them in the same place, and let the the town run for a minute, 
-			//letting the waypoints disperse the NPCs
+			int spawnPointChoice = Random.Range(0, 16);
+			citizens[i] =(GameObject) Instantiate (citizen, spawnPoints[spawnPointChoice].transform.position, Quaternion.identity);
 
-			citizens[i] =(GameObject) Instantiate (citizen, Vector3.zero, Quaternion.identity);
+			possibleCrimes [0] = robberyPrefab;
+			possibleCrimes [1] = arsonPrefab;
 		}
-		
 
 		FindCommunists ();
 		addPeopleToBuildings ();
@@ -45,49 +63,39 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void Update(){
-
-		//The communist limit is detirmined by the communist power divided by five, as can be seen here
-		//This determines the real number of citiaens who are also communists
+		PrintDossier ();
+		//The communist limit is determined by the communist power divided by five, as can be seen here
+		//This determines the real number of citizens who are also communists
 		communistLimit = communistPower / 5;
-		balanceCommunists();
+		BalanceCommunists();
 
-		handleCrimes ();
+		HandleCrimes ();
+		UpdateScore ();
 	}
 
-	//Takes all the citizens, and finds the magnitude of their communist characteristic
-	//If it is at or above five, it adds them to the communism group
 	void FindCommunists() {
-
+		//Takes all the citizens, and finds the magnitude of their communist characteristic
+		//If it is at or above five, it adds them to the communism group
 		foreach (GameObject person in citizens) {
 			AIScript script = person.GetComponent<AIScript> ();
 
-			if (script.getCommunism () >= 5) communists.Add (person);
-				
+			if (script.GetCommunism () >= 5) communists.Add (person);
 		}
-
-		/*
-		for (int i = 0; i < 8; i++) {
-			if (AI [i].tag == "Communist") {
-				communistNumber++;
-			}
-		} */
 	}
 
-	//This method makes sure that the number of communists never exceeds the communist limit, and tries to add new communists when possible
-	//the first if statement finds the current communist with the lowest communism characteristic, and removes it from the communist list
-	//The second simply tries to add more communist to the list
-	//This method activates every frame, so hopefuly it won't affect the fps.If not we can optimise it later
-
-	void balanceCommunists(){
-		
+	void BalanceCommunists(){
+		//This method makes sure that the number of communists never exceeds the communist limit, and tries to add new communists when possible
+		//the first if statement finds the current communist with the lowest communism characteristic, and removes it from the communist list
+		//The second simply tries to add more communist to the list
+		//This method activates every frame, so hopefully it won't affect the fps. If not we can optimise it later
 		if (communists.Count > communistLimit) {
 			int communismCheck = 100;
 			GameObject deleteTarget = communists [0];
 			foreach (GameObject person in communists) {
 				AIScript script = person.GetComponent<AIScript> ();
-				if (script.getCommunism() < communismCheck) {
+				if (script.GetCommunism() < communismCheck) {
 					deleteTarget = person;
-					communismCheck = script.getCommunism ();
+					communismCheck = script.GetCommunism ();
 				}
 			}
 			 communists.Remove (deleteTarget);
@@ -98,24 +106,61 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
-
-	void setBuildings(){
+	void SetBuildings(){
 		buildings = GameObject.FindGameObjectsWithTag ("Building");
 
 	}
 
-	void handleCrimes(){
+	void HandleCrimes(){
 		cooldownRemaining -= Time.deltaTime;
 		if (cooldownRemaining <= 0) {
-			GameObject newCrime = (GameObject) Instantiate (crime, Vector3.zero, Quaternion.identity);
-			CrimeSceneScript crimeData = newCrime.GetComponent<CrimeSceneScript>();
-			crimeData.setData ("communist", communists, communistPower, buildings);
-			cooldownRemaining = crimeCooldown;
 
-
-
+			GameObject chosenCrime = possibleCrimes [Random.Range (0, possibleCrimes.Length)];
+			GameObject newCrime = (GameObject) Instantiate (chosenCrime, new Vector3(0f,.2f,0f), Quaternion.identity);
+			CrimeDataClass crimeData = newCrime.GetComponent<CrimeDataClass>();
+			Debug.Log (crimeData);
+			crimeData.SetData (chosenCrime.name, communists, communistPower, buildings);
+			dossier.dossierCrimeEntries.Add (crimeData);
+			SetBuildings ();
+			communistPower += 10;
+			cooldownRemaining = AdjustCrimeCooldown(crimeCooldown);
+			currentCrime = crimeData;
 		}
 	}
+
+
+	void UpdateScore() {
+		if (communistPower != defaultCommunistPower) {
+			score.text = communistPower.ToString ();
+			Debug.Log (communistPower);
+			defaultCommunistPower = communistPower;
+			if (communistPower <= 0) {
+				Debug.Log ("You Win! No more communists in Levittburg!");
+				SceneManager.LoadScene ("WinningScene");
+
+			}
+			if (communistPower >= 100) {
+				Debug.Log ("You lose! The radicals have overthrown Levittburg!");
+				SceneManager.LoadScene ("LosingScene");
+			}
+		}
+	}
+
+	float AdjustCrimeCooldown(float currentCooldown) {
+		float cooldown = currentCooldown * 50*50/communistPower/communistPower;
+		return cooldown;
+	}
+
+	public void PrintDossier() {
+		if (dossierActive) {	
+			dossierText.text = dossier.GetDossierText ();
+			dossierCanvas.enabled = true;
+		} else {
+			dossierText.text = "";
+			dossierCanvas.enabled = false;
+		}
+	}
+
 
 	void addPeopleToBuildings(){
 
@@ -137,4 +182,14 @@ public class GameManager : MonoBehaviour {
 
 	}
 
+
+	public void ToggleDossier() {
+		if (dossierActive != true) {
+			dossierActive = true;
+		} else {
+			dossierActive = false;
+		}
+	}
+
 }
+

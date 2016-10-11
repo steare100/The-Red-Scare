@@ -6,7 +6,10 @@ public class CrimeSceneScript : MonoBehaviour {
 
 	static int crimeNumber = 0;
 
-	bool inProgress;
+
+
+	public bool inProgress;
+
 
 	string crimeType;
 	List<GameObject> perpetrators;
@@ -29,7 +32,9 @@ public class CrimeSceneScript : MonoBehaviour {
 
 	//TODO: Add code for when a citizen is within range of the crime
 
+
 	public void setData (string crimeType, List<GameObject> perpetrators, int communistPower, GameObject[] buildings){
+
 		
 		this.crimeType = crimeType;
 		this.perpetrators = perpetrators;
@@ -43,35 +48,31 @@ public class CrimeSceneScript : MonoBehaviour {
 		gameObject.transform.position = building.transform.position;
 		gameObject.transform.rotation = building.transform.rotation;
 
-		startCrime();
-		
+
+		StartCrime();
 	}
 
 
-	void startCrime() {
-		perpetrator = selectPerpetrator ();
+	void StartCrime() {
+		perpetrator = SelectPerpetrator ();
 		perpScript = perpetrator.GetComponent<AIScript> ();
 
-		perpScript.commitCrime (gameObject.transform.position, gameObject.GetComponent<CrimeSceneScript>());
-
-
-				
-
-			
+		perpScript.CommitCrime (gameObject.transform.position, gameObject.GetComponent<CrimeSceneScript>());
 	}
 
-	GameObject selectPerpetrator(){
+	GameObject SelectPerpetrator(){
 		return perpetrators [Random.Range (0, perpetrators.Count)];
 	}
 
-	public void crimeActive(){
+	public void CrimeActive(){
 		inProgress = true;
 	}
 
-	public void crimeDeactive(){
+	public void CrimeDeactive(){
 	}
 
-	int calculateCrimeLvl() {
+	int CalculateCrimeLvl() {
+
 		float crimeLvlRand = Random.value;
 		float low;
 		float mid;
@@ -113,8 +114,10 @@ public class CrimeSceneScript : MonoBehaviour {
 
 
 	}
-
+			
 	public int getCrimeNumber() {
+
+
 		return crimeNumber;
 	}
 }

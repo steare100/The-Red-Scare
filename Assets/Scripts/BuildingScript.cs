@@ -8,7 +8,9 @@ public class BuildingScript : MonoBehaviour {
 	string buildName;
 	List<GameObject> owners = new List<GameObject> ();
 
+
 	List<GameObject> peopleInside = new List<GameObject> ();
+
 
 
 	//we need to fill some crimes into here
@@ -19,6 +21,7 @@ public class BuildingScript : MonoBehaviour {
 
 	private Ray ray;
 	private RaycastHit hit;
+
 
 
 
@@ -37,6 +40,7 @@ public class BuildingScript : MonoBehaviour {
 	void Update () {
 
 	}
+
 
 	void OnGUI(){
 		if (guiActive == false) {
@@ -77,10 +81,12 @@ public class BuildingScript : MonoBehaviour {
 	}
 
 
+
 	public void addCitizen(GameObject citizen){
 		owners.Add (citizen);
 
 	}
+
 
 	public void addPersonInside(GameObject citizen){
 		peopleInside.Add (citizen);
@@ -104,6 +110,7 @@ public class BuildingScript : MonoBehaviour {
 
 		return result;
 	}
+
 
 
 
